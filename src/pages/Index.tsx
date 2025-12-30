@@ -1,12 +1,34 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from 'react';
+import { PerroTicker } from '@/components/PerroTicker';
+import { HotDogMap } from '@/components/HotDogMap';
+import { SubmitFAB } from '@/components/SubmitFAB';
+import { SubmitModal } from '@/components/SubmitModal';
+import { BottomSheet } from '@/components/BottomSheet';
 
 const Index = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <div className="h-screen w-screen overflow-hidden flex flex-col bg-background">
+      {/* Top ticker */}
+      <PerroTicker />
+
+      {/* Full-screen map */}
+      <div className="flex-1 relative">
+        <HotDogMap />
       </div>
+
+      {/* Submit FAB */}
+      <SubmitFAB onClick={() => setIsModalOpen(true)} />
+
+      {/* Submit Modal */}
+      <SubmitModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
+
+      {/* Bottom sheet with entries */}
+      <BottomSheet />
     </div>
   );
 };
