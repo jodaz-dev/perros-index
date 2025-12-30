@@ -15,7 +15,7 @@ const Index = () => {
 
       {/* Full-screen map */}
       <div className="flex-1 relative">
-        {/* <HotDogMap /> */}
+        <HotDogMap />
       </div>
 
       {/* Submit FAB */}
