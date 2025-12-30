@@ -6,6 +6,10 @@ export const PerroTicker = () => {
   const { getNationalAverage, getLocalAverage, userLocation, entries } = useAppStore();
   
   const nationalAvg = getNationalAverage();
+  const nationalAvgBcv = entries.length > 0
+    ? entries.reduce((s, e) => s + (e.priceBcv || e.price), 0) / entries.length
+    : 0;
+
   const localAvg = userLocation 
     ? getLocalAverage(userLocation.lat, userLocation.lng, 50) 
     : 0;
@@ -23,10 +27,17 @@ export const PerroTicker = () => {
 
   const tickerContent = (
     <div className="flex items-center gap-8 px-4">
+      {/* BCV Average */}
       <div className="flex items-center gap-2">
         <span className="text-2xl">🌭</span>
-        <span className="text-foreground/70">Nacional:</span>
-        <span className="font-bold text-primary">${nationalAvg.toFixed(2)}</span>
+        <span className="text-foreground/70">Promedio BCV:</span>
+        <span className="font-bold text-yellow-500">${nationalAvgBcv.toFixed(2)}</span>
+      </div>
+
+      {/* USDT Average */}
+      <div className="flex items-center gap-2">
+        <span className="text-foreground/70">Promedio USDT:</span>
+        <span className="font-bold text-green-500">${nationalAvg.toFixed(2)}</span>
         {trend === 'up' ? (
           <TrendingUp className="w-4 h-4 text-ketchup" />
         ) : (
@@ -37,7 +48,7 @@ export const PerroTicker = () => {
       {localAvg > 0 && (
         <div className="flex items-center gap-2">
           <MapPin className="w-4 h-4 text-primary" />
-          <span className="text-foreground/70">Tu zona:</span>
+          <span className="text-foreground/70">Tu zona (USDT):</span>
           <span className="font-bold text-primary">${localAvg.toFixed(2)}</span>
         </div>
       )}

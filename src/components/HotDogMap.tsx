@@ -92,9 +92,39 @@ function EntryMarkers({ entries, avgPrice }: EntryMarkersProps) {
           <Popup>
             <div className="p-2 min-w-[200px]">
               <h3 className="font-bold text-lg text-foreground">{entry.businessName}</h3>
-              <p className="text-2xl font-bold" style={{ color: '#FFDB58' }}>${entry.price.toFixed(2)}</p>
+              {entry.photo && (
+                <img 
+                  src={entry.photo} 
+                  alt={entry.businessName}
+                  className="w-full h-32 object-cover rounded-lg my-2" 
+                />
+              )}
+              
+              <div className="space-y-1 mt-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-400">BCV:</span>
+                  <p className="text-xl font-bold" style={{ color: '#FFDB58' }}>
+                    ${(entry.priceBcv || entry.price).toFixed(2)}
+                  </p>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-400">USDT:</span>
+                  <p className="text-xl font-bold" style={{ color: '#22c55e' }}>
+                    ${entry.price.toFixed(2)}
+                  </p>
+                </div>
+                {entry.priceBs && (
+                  <div className="flex items-center justify-between pt-1 border-t border-gray-700">
+                    <span className="text-sm text-gray-400">Bs:</span>
+                    <p className="text-sm font-bold text-gray-300">
+                      {entry.priceBs.toFixed(2)} Bs
+                    </p>
+                  </div>
+                )}
+              </div>
+
               {entry.state && (
-                <p className="text-sm text-gray-500">{entry.state}</p>
+                <p className="text-sm text-gray-500 mt-2">{entry.state}</p>
               )}
               <p className="text-xs text-gray-400 mt-1">
                 {new Date(entry.createdAt).toLocaleDateString('es-VE')}

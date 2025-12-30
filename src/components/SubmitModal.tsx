@@ -1,10 +1,10 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Camera, MapPin, Check, Loader2 } from 'lucide-react';
+import { X, Camera, MapPin, Check, Loader2, Calculator } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAppStore } from '@/store/useAppStore';
+import { useAppStore, EXCHANGE_RATES } from '@/store/useAppStore';
 import { toast } from 'sonner';
 
 interface SubmitModalProps {
@@ -13,7 +13,7 @@ interface SubmitModalProps {
 }
 
 export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
-  const [price, setPrice] = useState('');
+  const [priceBs, setPriceBs] = useState('');
   const [businessName, setBusinessName] = useState('');
   const [photo, setPhoto] = useState<string | null>(null);
   const [isLocating, setIsLocating] = useState(false);
@@ -23,6 +23,15 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { addEntry, userLocation } = useAppStore();
+
+  const estimates = useMemo(() => {
+    const val = parseFloat(priceBs);
+    if (isNaN(val)) return null;
+    return {
+      usdt: val / EXCHANGE_RATES.USDT,
+      bcv: val / EXCHANGE_RATES.BCV
+    };
+  }, [priceBs]);
 
   const handleGetLocation = () => {
     setIsLocating(true);
@@ -51,7 +60,7 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
   };
 
   const handleSubmit = async () => {
-    if (!price || !businessName) {
+    if (!priceBs || !businessName) {
       toast.error('Completa todos los campos requeridos');
       return;
     }
@@ -67,8 +76,14 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 500));
 
+    const bsValue = parseFloat(priceBs);
+    const usdtPrice = bsValue / EXCHANGE_RATES.USDT; // This is the "real" USD price for the list
+    const bcvPrice = bsValue / EXCHANGE_RATES.BCV;
+
     addEntry({
-      price: parseFloat(price),
+      price: usdtPrice,
+      priceBs: bsValue,
+      priceBcv: bcvPrice,
       businessName,
       lat: submitLocation.lat,
       lng: submitLocation.lng,
@@ -86,7 +101,7 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
   };
 
   const resetForm = () => {
-    setPrice('');
+    setPriceBs('');
     setBusinessName('');
     setPhoto(null);
     setLocation(null);
@@ -190,22 +205,44 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
                       )}
                     </div>
 
-                    {/* Price input */}
+                    {/* Price input (Bolivares) */}
                     <div>
-                      <Label htmlFor="price">Precio (USD) *</Label>
+                      <Label htmlFor="price">Precio (Bolívares) *</Label>
                       <div className="relative mt-1">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">Bs</span>
                         <Input
                           id="price"
                           type="number"
                           step="0.01"
                           min="0"
-                          value={price}
-                          onChange={(e) => setPrice(e.target.value)}
-                          placeholder="2.50"
-                          className="pl-8 bg-secondary border-none text-lg"
+                          value={priceBs}
+                          onChange={(e) => setPriceBs(e.target.value)}
+                          placeholder="100.00"
+                          className="pl-10 bg-secondary border-none text-lg"
                         />
                       </div>
+                      
+                      {/* Price Estimates */}
+                      {estimates && (
+                        <motion.div 
+                          className="mt-2 text-sm text-muted-foreground bg-secondary/50 p-3 rounded-lg flex flex-col gap-1"
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <Calculator className="w-3 h-3" />
+                            <span className="font-semibold">Estimado en divisa:</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>BCV:</span>
+                            <span className="font-bold text-foreground">${estimates.bcv.toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>USDT:</span>
+                            <span className="font-bold text-foreground">${estimates.usdt.toFixed(2)}</span>
+                          </div>
+                        </motion.div>
+                      )}
                     </div>
 
                     {/* Business name */}
@@ -246,7 +283,7 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
                     {/* Submit */}
                     <Button
                       onClick={handleSubmit}
-                      disabled={isSubmitting || !price || !businessName}
+                      disabled={isSubmitting || !priceBs || !businessName}
                       className="w-full h-12 text-lg font-display font-bold"
                     >
                       {isSubmitting ? (
