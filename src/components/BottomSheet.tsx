@@ -64,7 +64,7 @@ export const BottomSheet = () => {
 
   return (
     <motion.div
-      className="fixed bottom-0 left-0 right-0 z-40 glass-strong rounded-t-3xl"
+      className="absolute bottom-0 left-0 right-0 z-40 glass-strong rounded-t-3xl"
       initial={{ y: 0 }}
       animate={{ 
         height: isExpanded ? '70vh' : '180px',

@@ -14,7 +14,7 @@ const Index = () => {
       <PerroTicker />
 
       {/* Full-screen map */}
-      <div className="flex-1 relative">
+      <div className="flex-1 relative z-0">
         <HotDogMap />
       </div>
 
