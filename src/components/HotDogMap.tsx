@@ -1,12 +1,20 @@
-import { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { useEffect, useState } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
-import { useAppStore } from '@/store/useAppStore';
+import { useAppStore, HotDogEntry } from '@/store/useAppStore';
 import 'leaflet/dist/leaflet.css';
+
+// Fix Leaflet default marker icon issue
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 // Custom hot dog marker icon
 const createHotDogIcon = (price: number, avgPrice: number) => {
-  const ratio = price / avgPrice;
+  const ratio = avgPrice > 0 ? price / avgPrice : 1;
   let color = '#22c55e'; // green - cheap
   if (ratio > 1.1) color = '#ef4444'; // red - expensive
   else if (ratio > 0.9) color = '#FFDB58'; // mustard - average
@@ -32,37 +40,72 @@ const createHotDogIcon = (price: number, avgPrice: number) => {
   });
 };
 
-const LocationMarker = () => {
-  const map = useMap();
+const createUserIcon = () => {
+  return L.divIcon({
+    html: `<div style="
+      background: hsl(50, 100%, 67%);
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 3px solid white;
+      box-shadow: 0 0 20px rgba(255, 219, 88, 0.6);
+    "></div>`,
+    className: 'user-marker',
+    iconSize: [16, 16],
+    iconAnchor: [8, 8],
+  });
+};
+
+function LocationMarker() {
   const { setUserLocation, userLocation } = useAppStore();
+  const map = useMapEvents({
+    locationfound(e) {
+      setUserLocation({ lat: e.latlng.lat, lng: e.latlng.lng });
+    },
+  });
 
   useEffect(() => {
     map.locate({ setView: false });
+  }, [map]);
 
-    map.on('locationfound', (e) => {
-      setUserLocation({ lat: e.latlng.lat, lng: e.latlng.lng });
-    });
-  }, [map, setUserLocation]);
+  if (!userLocation) return null;
 
-  return userLocation ? (
-    <Marker 
-      position={[userLocation.lat, userLocation.lng]}
-      icon={L.divIcon({
-        html: `<div style="
-          background: hsl(50, 100%, 67%);
-          width: 16px;
-          height: 16px;
-          border-radius: 50%;
-          border: 3px solid white;
-          box-shadow: 0 0 20px rgba(255, 219, 88, 0.6);
-        "></div>`,
-        className: 'user-marker',
-        iconSize: [16, 16],
-        iconAnchor: [8, 8],
-      })}
-    />
-  ) : null;
-};
+  return (
+    <Marker position={[userLocation.lat, userLocation.lng]} icon={createUserIcon()} />
+  );
+}
+
+interface EntryMarkersProps {
+  entries: HotDogEntry[];
+  avgPrice: number;
+}
+
+function EntryMarkers({ entries, avgPrice }: EntryMarkersProps) {
+  return (
+    <>
+      {entries.map((entry) => (
+        <Marker
+          key={entry.id}
+          position={[entry.lat, entry.lng]}
+          icon={createHotDogIcon(entry.price, avgPrice)}
+        >
+          <Popup>
+            <div className="p-2 min-w-[200px]">
+              <h3 className="font-bold text-lg text-foreground">{entry.businessName}</h3>
+              <p className="text-2xl font-bold" style={{ color: '#FFDB58' }}>${entry.price.toFixed(2)}</p>
+              {entry.state && (
+                <p className="text-sm text-gray-500">{entry.state}</p>
+              )}
+              <p className="text-xs text-gray-400 mt-1">
+                {new Date(entry.createdAt).toLocaleDateString('es-VE')}
+              </p>
+            </div>
+          </Popup>
+        </Marker>
+      ))}
+    </>
+  );
+}
 
 export const HotDogMap = () => {
   const { entries, getNationalAverage } = useAppStore();
@@ -83,27 +126,7 @@ export const HotDogMap = () => {
         url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
       />
       <LocationMarker />
-      
-      {entries.map((entry) => (
-        <Marker
-          key={entry.id}
-          position={[entry.lat, entry.lng]}
-          icon={createHotDogIcon(entry.price, avgPrice)}
-        >
-          <Popup className="custom-popup">
-            <div className="p-2 min-w-[200px]">
-              <h3 className="font-display font-bold text-lg">{entry.businessName}</h3>
-              <p className="text-2xl font-bold text-mustard">${entry.price.toFixed(2)}</p>
-              {entry.state && (
-                <p className="text-sm text-muted-foreground">{entry.state}</p>
-              )}
-              <p className="text-xs text-muted-foreground mt-1">
-                {new Date(entry.createdAt).toLocaleDateString('es-VE')}
-              </p>
-            </div>
-          </Popup>
-        </Marker>
-      ))}
+      <EntryMarkers entries={entries} avgPrice={avgPrice} />
     </MapContainer>
   );
 };
