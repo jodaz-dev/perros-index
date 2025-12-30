@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAppStore, EXCHANGE_RATES } from '@/store/useAppStore';
+import { reportService } from '@/services/reportService';
+import { isSupabaseConfigured } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 interface SubmitModalProps {
@@ -16,6 +18,7 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
   const [priceBs, setPriceBs] = useState('');
   const [businessName, setBusinessName] = useState('');
   const [photo, setPhoto] = useState<string | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -51,6 +54,7 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
   const handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setPhotoFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setPhoto(reader.result as string);
@@ -72,38 +76,55 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
     }
 
     setIsSubmitting(true);
-    
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 500));
 
-    const bsValue = parseFloat(priceBs);
-    const usdtPrice = bsValue / EXCHANGE_RATES.USDT; // This is the "real" USD price for the list
-    const bcvPrice = bsValue / EXCHANGE_RATES.BCV;
+    try {
+      const bsValue = parseFloat(priceBs);
 
-    addEntry({
-      price: usdtPrice,
-      priceBs: bsValue,
-      priceBcv: bcvPrice,
-      businessName,
-      lat: submitLocation.lat,
-      lng: submitLocation.lng,
-      photo: photo || undefined,
-    });
+      // Try Supabase first
+      if (isSupabaseConfigured()) {
+        await reportService.create({
+          businessName,
+          priceBs: bsValue,
+          lat: submitLocation.lat,
+          lng: submitLocation.lng,
+          photoFile: photoFile || undefined,
+        });
+      } else {
+        // Fallback to local store
+        const usdtPrice = bsValue / EXCHANGE_RATES.USDT;
+        const bcvPrice = bsValue / EXCHANGE_RATES.BCV;
 
-    setIsSubmitting(false);
-    setShowSuccess(true);
-    
-    setTimeout(() => {
-      setShowSuccess(false);
-      onClose();
-      resetForm();
-    }, 1500);
+        addEntry({
+          price: usdtPrice,
+          priceBs: bsValue,
+          priceBcv: bcvPrice,
+          businessName,
+          lat: submitLocation.lat,
+          lng: submitLocation.lng,
+          photo: photo || undefined,
+        });
+      }
+
+      setIsSubmitting(false);
+      setShowSuccess(true);
+      
+      setTimeout(() => {
+        setShowSuccess(false);
+        onClose();
+        resetForm();
+      }, 1500);
+    } catch (error) {
+      console.error('Failed to submit report:', error);
+      toast.error('Error al enviar el reporte');
+      setIsSubmitting(false);
+    }
   };
 
   const resetForm = () => {
     setPriceBs('');
     setBusinessName('');
     setPhoto(null);
+    setPhotoFile(null);
     setLocation(null);
   };
 

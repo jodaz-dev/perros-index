@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 
 export interface HotDogEntry {
   id: string;
-  price: number; // Main USD price (usually USDT based for consistency)
+  price: number; // Main USD price (USDT based)
   priceBs?: number; // Price in Bolivares
   priceBcv?: number; // Price in USD at BCV rate
   businessName: string;
@@ -17,19 +17,23 @@ export interface HotDogEntry {
 interface AppState {
   entries: HotDogEntry[];
   userLocation: { lat: number; lng: number } | null;
+  isUsingMockData: boolean;
   addEntry: (entry: Omit<HotDogEntry, 'id' | 'createdAt'>) => void;
+  setEntries: (entries: HotDogEntry[]) => void;
+  prependEntry: (entry: HotDogEntry) => void;
   setUserLocation: (location: { lat: number; lng: number }) => void;
+  setUsingMockData: (value: boolean) => void;
   getNationalAverage: () => number;
   getLocalAverage: (lat: number, lng: number, radiusKm: number) => number;
 }
 
-// Fixed rates for demo purposes
+// Fixed rates for demo purposes (will be overridden by Supabase when configured)
 export const EXCHANGE_RATES = {
   BCV: 45.50,
   USDT: 53.20,
 };
 
-// Mock data for Venezuela
+// Mock data for Venezuela (used when Supabase is not configured)
 const mockEntries: HotDogEntry[] = [
   { 
     id: '1', 
@@ -111,10 +115,11 @@ const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: numbe
 };
 
 export const useAppStore = create<AppState>()(
-  persist<AppState>(
+  persist(
     (set, get) => ({
       entries: mockEntries,
       userLocation: null,
+      isUsingMockData: true,
 
       addEntry: (entry) => {
         const newEntry: HotDogEntry = {
@@ -125,7 +130,15 @@ export const useAppStore = create<AppState>()(
         set((state) => ({ entries: [newEntry, ...state.entries] }));
       },
 
+      setEntries: (entries) => set({ entries, isUsingMockData: false }),
+
+      prependEntry: (entry) => set((state) => ({ 
+        entries: [entry, ...state.entries] 
+      })),
+
       setUserLocation: (location) => set({ userLocation: location }),
+
+      setUsingMockData: (value) => set({ isUsingMockData: value }),
 
       getNationalAverage: () => {
         const entries = get().entries;
@@ -143,3 +156,4 @@ export const useAppStore = create<AppState>()(
     { name: 'perros-index-storage' }
   )
 );
+
