@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
-import { ChevronUp, Clock, MapPin, DollarSign } from 'lucide-react';
+import { ChevronUp, Clock, MapPin, DollarSign, ChevronDown } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 
 type SortOption = 'newest' | 'closest' | 'cheapest';
@@ -85,7 +85,7 @@ export const BottomSheet = () => {
 
       {/* Header */}
       <div className="px-4 pb-3 flex items-center justify-between">
-        <h3 className="font-display font-bold text-lg flex items-center gap-2">
+        <h3 className="font-display font-bold text-lg flex items-center gap-2 cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
           Reportes recientes
           <motion.span
             animate={{ rotate: isExpanded ? 180 : 0 }}
@@ -96,7 +96,7 @@ export const BottomSheet = () => {
         </h3>
 
         {/* Sort buttons */}
-        <div className="flex gap-1">
+        {/* <div className="flex gap-1">
           {[
             { key: 'newest' as SortOption, icon: Clock, label: 'Nuevo' },
             { key: 'closest' as SortOption, icon: MapPin, label: 'Cerca' },
@@ -114,7 +114,7 @@ export const BottomSheet = () => {
               <Icon className="w-4 h-4" />
             </button>
           ))}
-        </div>
+        </div> */}
       </div>
 
       {/* Entries list */}
