@@ -6,7 +6,7 @@ export const PerroTicker = () => {
   const { getNationalAverage, getLocalAverage, userLocation, entries } = useAppStore();
   
   const nationalAvg = getNationalAverage();
-  console.log(nationalAvg)
+
   const nationalAvgBcv = entries.length > 0
     ? entries.reduce((s, e) => s + (e.priceBcv || e.price), 0) / entries.length
     : 0;

@@ -189,14 +189,14 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
                   <div className="space-y-4">
                     {/* Photo capture (optional) */}
                     <div className="flex justify-center">
-                      <input
+                      {/* <input
                         type="file"
                         accept="image/*"
                         capture="environment"
                         ref={fileInputRef}
                         onChange={handlePhotoCapture}
                         className="hidden"
-                      />
+                      /> */}
                       {photo ? (
                         <motion.div
                           initial={{ scale: 0.8, opacity: 0 }}
