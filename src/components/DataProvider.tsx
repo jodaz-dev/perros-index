@@ -1,9 +1,8 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 import { useAppStore, HotDogEntry } from '@/store/useAppStore';
 import { reportService } from '@/services/reportService';
 import { isSupabaseConfigured } from '@/lib/supabase';
 import { useReports } from '@/hooks/useReports';
-import { useExchangeRates } from '@/hooks/useExchangeRates';
 import type { Report } from '@/lib/database.types';
 
 // Transform Supabase report to app format
@@ -29,8 +28,6 @@ export const DataProvider = ({ children }: DataProviderProps) => {
   
   // Initialize queries
   const { data: reports, isError } = useReports();
-  // We call useExchangeRates here to ensure it's running globally
-  useExchangeRates();
 
   // Sync reports with global store
   useEffect(() => {
