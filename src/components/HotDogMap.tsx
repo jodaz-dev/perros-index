@@ -138,17 +138,20 @@ function EntryMarkers({ entries, avgPrice }: EntryMarkersProps) {
   );
 }
 
+const defaultLat = 8.0;
+const defaultLng = -66.0;
+
 export const HotDogMap = () => {
-  const { entries, getNationalAverage } = useAppStore();
+  const { entries, getNationalAverage, userLocation } = useAppStore();
   const avgPrice = getNationalAverage();
 
   // Center on Venezuela
-  const venezuelaCenter: [number, number] = [8.0, -66.0];
+  const center: [number, number] = [userLocation?.lat || defaultLat, userLocation?.lng || defaultLng];
 
   return (
     <MapContainer
-      center={venezuelaCenter}
-      zoom={6}
+      center={center}
+      zoom={12}
       className="w-full h-full"
       style={{ background: 'hsl(0, 0%, 10%)' }}
     >
