@@ -1,73 +1,128 @@
-# Welcome to your Lovable project
+# 🌭 Perros Index
 
-## Project info
+Track hot dog prices across Venezuela in real-time! Users report prices from their local vendors and the app calculates regional and national averages.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## ✨ Features
 
-## How can I edit this code?
+- 📍 **Interactive Map**: View hot dog prices across Venezuela with Leaflet
+- 💰 **Dual Currency Display**: Prices in both BCV and USDT rates
+- 📊 **Real-time Averages**: National and local price averages updated live
+- 📝 **Community Reports**: Users submit prices with location data
+- 🔄 **Live Updates**: TanStack Query polling + Supabase real-time subscriptions
 
-There are several ways of editing your application.
+## 🛠️ Tech Stack
 
-**Use Lovable**
+- **Frontend**: React 18 + TypeScript + Vite
+- **Styling**: Tailwind CSS + shadcn/ui
+- **State Management**: Zustand
+- **Data Fetching**: TanStack Query
+- **Maps**: React Leaflet
+- **Backend**: Supabase (PostgreSQL + PostGIS)
+- **Animations**: Framer Motion
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## 📁 Project Structure
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+src/
+├── components/          # React components
+│   ├── ui/              # shadcn/ui primitives
+│   ├── HotDogMap.tsx    # Main map component
+│   ├── PerroTicker.tsx  # Price ticker with averages
+│   ├── SubmitModal.tsx  # Report submission form
+│   ├── BottomSheet.tsx  # Mobile-friendly bottom drawer
+│   ├── DisclaimerModal.tsx  # App info modal
+│   └── DataProvider.tsx # Data synchronization wrapper
+├── hooks/               # Custom React hooks
+│   ├── useExchangeRates.ts  # Fetch exchange rates with polling
+│   ├── useReports.ts        # Fetch reports with polling
+│   └── use-toast.ts         # Toast notifications
+├── services/            # API service layers
+│   ├── reportService.ts      # CRUD operations for reports
+│   └── exchangeRateService.ts # Exchange rate fetching
+├── store/               # Zustand stores
+│   └── useAppStore.ts   # Global app state
+├── mocks/               # Mock data for development
+├── lib/                 # Utilities and configurations
+│   ├── supabase.ts      # Supabase client
+│   ├── database.types.ts # Generated DB types
+│   └── utils.ts         # Helper functions
+└── pages/               # Route pages
+    ├── Index.tsx        # Main page
+    └── NotFound.tsx     # 404 page
 ```
 
-**Edit a file directly in GitHub**
+## 🚀 Getting Started
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Prerequisites
 
-**Use GitHub Codespaces**
+- Node.js 18+ (recommend using [nvm](https://github.com/nvm-sh/nvm))
+- pnpm (`npm install -g pnpm`)
+- Supabase account (optional, uses mock data without it)
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Installation
 
-## What technologies are used for this project?
+```bash
+# Clone the repository
+git clone https://github.com/jodaz/hot-dog-tracker.git
+cd hot-dog-tracker
 
-This project is built with:
+# Install dependencies
+pnpm install
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+# Copy environment variables
+cp .env.example .env.local
 
-## How can I deploy this project?
+# Start development server
+pnpm dev
+```
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+### Environment Variables
 
-## Can I connect a custom domain to my Lovable project?
+Create a `.env.local` file with:
 
-Yes, you can!
+```env
+VITE_SUPABASE_URL=your-supabase-project-url
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+> **Note**: The app works without Supabase using mock data for development.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## 🐳 Docker
+
+Build and run with Docker:
+
+```bash
+# Build with environment variables
+export $(grep -v '^#' .env.local | xargs) && docker build \
+  --build-arg VITE_SUPABASE_URL=$VITE_SUPABASE_URL \
+  --build-arg VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY \
+  -t hot-dog-tracker .
+
+# Run the container
+docker run -p 4173:4173 hot-dog-tracker
+```
+
+## 📜 Available Scripts
+
+| Script | Description |
+|--------|-------------|
+| `pnpm dev` | Start development server |
+| `pnpm build` | Build for production |
+| `pnpm preview` | Preview production build |
+| `pnpm lint` | Run ESLint |
+
+## 🗄️ Database Setup (Supabase)
+
+1. Create a new Supabase project
+2. Run migrations from `supabase/migrations/`
+3. Enable PostGIS extension for geospatial queries
+4. Set up storage bucket `report-photos` for image uploads
+
+## 👤 Author
+
+**Jesus Ordosgoitty**  
+🌐 [jodaz.xyz](https://jodaz.xyz)
+
+## 📄 License
+
+MIT
