@@ -14,6 +14,8 @@ interface SubmitModalProps {
   onClose: () => void;
 }
 
+console.log(EXCHANGE_RATES)
+
 export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
   const [priceBs, setPriceBs] = useState('');
   const [businessName, setBusinessName] = useState('');

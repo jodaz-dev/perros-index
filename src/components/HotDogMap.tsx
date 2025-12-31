@@ -90,8 +90,12 @@ function EntryMarkers({ entries, avgPrice }: EntryMarkersProps) {
           icon={createHotDogIcon(entry.price, avgPrice)}
         >
           <Popup>
-            <div className="p-2 min-w-[200px]">
-              <h3 className="font-bold text-lg text-foreground">{entry.businessName}</h3>
+            <div className="p-1 min-w-[160px]">
+              <h3 className="font-semibold text-2xl text-yellow-400 tracking-[1px]">{entry.businessName}</h3>
+
+              <span className="text-xs text-gray-500 mt-1">
+                {new Date(entry.createdAt).toLocaleDateString('es-VE')}
+              </span>
               {entry.photo && (
                 <img 
                   src={entry.photo} 
@@ -100,25 +104,25 @@ function EntryMarkers({ entries, avgPrice }: EntryMarkersProps) {
                 />
               )}
               
-              <div className="space-y-1 mt-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-400">BCV:</span>
-                  <p className="text-xl font-bold" style={{ color: '#FFDB58' }}>
+              <div className="mt-2">
+                <div className="flex items-center justify-between m-0">
+                  <span className="text-sm text-gray-600">BCV:</span>
+                  <span className="text-xl font-bold text-red-500 m-0">
                     ${(entry.priceBcv || entry.price).toFixed(2)}
-                  </p>
+                  </span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-400">USDT:</span>
-                  <p className="text-xl font-bold" style={{ color: '#22c55e' }}>
+                <div className="flex items-center justify-between m-0">
+                  <span className="text-sm text-gray-600 m-0">USDT:</span>
+                  <span className="text-xl font-bold text-green-500 m-0">
                     ${entry.price.toFixed(2)}
-                  </p>
+                  </span>
                 </div>
                 {entry.priceBs && (
-                  <div className="flex items-center justify-between pt-1 border-t border-gray-700">
-                    <span className="text-sm text-gray-400">Bs:</span>
-                    <p className="text-sm font-bold text-gray-300">
+                  <div className="flex items-center justify-between pt-1 border-t border-gray-700 mt-3">
+                    <span className="text-sm text-gray-600">Bs:</span>
+                    <span className="text-sm font-bold text-gray-900">
                       {entry.priceBs.toFixed(2)} Bs
-                    </p>
+                    </span>
                   </div>
                 )}
               </div>
@@ -126,9 +130,6 @@ function EntryMarkers({ entries, avgPrice }: EntryMarkersProps) {
               {entry.state && (
                 <p className="text-sm text-gray-500 mt-2">{entry.state}</p>
               )}
-              <p className="text-xs text-gray-400 mt-1">
-                {new Date(entry.createdAt).toLocaleDateString('es-VE')}
-              </p>
             </div>
           </Popup>
         </Marker>
