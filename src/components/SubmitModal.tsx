@@ -36,6 +36,11 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
     };
   }, [priceBs, exchangeRates]);
 
+  const handleOnClose = () => {
+    resetForm();
+    onClose();
+  };
+
   const handleGetLocation = () => {
     setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
@@ -69,8 +74,7 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
       return;
     }
 
-    const submitLocation = location || userLocation;
-    if (!submitLocation) {
+    if (!location) {
       toast.error('Necesitamos tu ubicación');
       return;
     }
@@ -85,8 +89,8 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
         await reportService.create({
           businessName,
           priceBs: bsValue,
-          lat: submitLocation.lat,
-          lng: submitLocation.lng,
+          lat: location.lat,
+          lng: location.lng,
           photoFile: photoFile || undefined,
         });
       } else {
@@ -99,8 +103,8 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
           priceBs: bsValue,
           priceBcv: bcvPrice,
           businessName,
-          lat: submitLocation.lat,
-          lng: submitLocation.lng,
+          lat: location.lat,
+          lng: location.lng,
           photo: photo || undefined,
         });
       }
@@ -110,8 +114,7 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
       
       setTimeout(() => {
         setShowSuccess(false);
-        onClose();
-        resetForm();
+        handleOnClose();
       }, 1500);
     } catch (error) {
       console.error('Failed to submit report:', error);
@@ -139,7 +142,7 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
         >
           <motion.div 
             className="absolute inset-0 bg-background/80 backdrop-blur-sm"
-            onClick={onClose}
+            onClick={handleOnClose}
           />
           
           <motion.div
@@ -179,7 +182,7 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-display font-bold">Reportar Precio</h2>
                     <button
-                      onClick={onClose}
+                      onClick={handleOnClose}
                       className="p-2 rounded-full hover:bg-secondary transition-colors"
                     >
                       <X className="w-5 h-5" />
@@ -280,22 +283,20 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
 
                     {/* Location */}
                     <div>
-                      <Label>Ubicación</Label>
+                      <Label>Ubicación *</Label>
                       <Button
                         variant="secondary"
-                        className="w-full mt-1 justify-start"
+                        className={`w-full mt-1 justify-start ${!location ? 'border border-dashed border-muted-foreground/50' : 'border border-green-500/50 bg-green-500/10'}`}
                         onClick={handleGetLocation}
                         disabled={isLocating}
                       >
                         {isLocating ? (
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                         ) : (
-                          <MapPin className="w-4 h-4 mr-2" />
+                          <MapPin className={`w-4 h-4 mr-2 ${location ? 'text-green-500' : ''}`} />
                         )}
                         {location 
                           ? `${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`
-                          : userLocation
-                          ? 'Usar ubicación actual'
                           : 'Detectar ubicación'
                         }
                       </Button>
@@ -304,7 +305,7 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
                     {/* Submit */}
                     <Button
                       onClick={handleSubmit}
-                      disabled={isSubmitting || !priceBs || !businessName}
+                      disabled={isSubmitting || !priceBs || !businessName || !location}
                       className="w-full h-12 text-lg font-display font-bold"
                     >
                       {isSubmitting ? (
