@@ -2,9 +2,11 @@ import { useEffect, useCallback } from 'react';
 import { useAppStore, HotDogEntry } from '@/store/useAppStore';
 import { reportService } from '@/services/reportService';
 import { isSupabaseConfigured } from '@/lib/supabase';
+import { useReports } from '@/hooks/useReports';
+import { useExchangeRates } from '@/hooks/useExchangeRates';
 import type { Report } from '@/lib/database.types';
 
-// Transform Supabase report to app store format
+// Transform Supabase report to app format
 const mapReportToEntry = (report: Report): HotDogEntry => ({
   id: report.id,
   businessName: report.business_name,
@@ -22,37 +24,26 @@ interface DataProviderProps {
   children: React.ReactNode;
 }
 
-/**
- * DataProvider component that syncs Supabase data to the app store.
- * When Supabase is configured, it fetches data and sets up real-time subscriptions.
- * Falls back to mock data when Supabase is not configured.
- */
 export const DataProvider = ({ children }: DataProviderProps) => {
   const { setEntries, prependEntry, setUsingMockData } = useAppStore();
+  
+  // Initialize queries
+  const { data: reports, isError } = useReports();
+  // We call useExchangeRates here to ensure it's running globally
+  useExchangeRates();
 
-  const loadData = useCallback(async () => {
-    if (!isSupabaseConfigured()) {
-      setUsingMockData(true);
-      return;
-    }
-
-    try {
-      const reports = await reportService.getAll();
-      if (reports) {
-        const entries = reports.map(mapReportToEntry);
-        setEntries(entries);
-      }
-    } catch (error) {
-      console.error('Failed to load reports from Supabase:', error);
-      setUsingMockData(true);
-    }
-  }, [setEntries, setUsingMockData]);
-
+  // Sync reports with global store
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if (reports) {
+      const entries = reports.map(mapReportToEntry);
+      setEntries(entries);
+      setUsingMockData(false);
+    } else if (isError || !isSupabaseConfigured()) {
+      setUsingMockData(true);
+    }
+  }, [reports, isError, setEntries, setUsingMockData]);
 
-  // Set up real-time subscription
+  // Set up real-time subscription for immediate updates
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
 
@@ -61,8 +52,7 @@ export const DataProvider = ({ children }: DataProviderProps) => {
         const newEntry = mapReportToEntry(payload.new as Report);
         prependEntry(newEntry);
       }
-      // For simplicity, we'll refetch on UPDATE/DELETE
-      // In production, handle these more granularly
+      // UPDATE/DELETE can be handled by the next poll
     });
 
     return () => {

@@ -4,10 +4,8 @@ import { HotDogMap } from '@/components/HotDogMap';
 import { SubmitFAB } from '@/components/SubmitFAB';
 import { SubmitModal } from '@/components/SubmitModal';
 import { BottomSheet } from '@/components/BottomSheet';
-import { useExchangeRates } from '@/hooks/useExchangeRates';
 
 const Index = () => {
-  useExchangeRates()
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
