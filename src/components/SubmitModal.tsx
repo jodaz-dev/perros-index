@@ -4,7 +4,7 @@ import { X, Camera, MapPin, Check, Loader2, Calculator } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAppStore, EXCHANGE_RATES } from '@/store/useAppStore';
+import { useAppStore } from '@/store/useAppStore';
 import { reportService } from '@/services/reportService';
 import { isSupabaseConfigured } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -13,8 +13,6 @@ interface SubmitModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
-console.log(EXCHANGE_RATES)
 
 export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
   const [priceBs, setPriceBs] = useState('');
@@ -27,16 +25,21 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
   const [showSuccess, setShowSuccess] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { addEntry, userLocation } = useAppStore();
+  const { addEntry, userLocation, exchangeRates } = useAppStore();
 
   const estimates = useMemo(() => {
     const val = parseFloat(priceBs);
     if (isNaN(val)) return null;
     return {
-      usdt: val / EXCHANGE_RATES.USDT,
-      bcv: val / EXCHANGE_RATES.BCV
+      usdt: val / exchangeRates.USDT,
+      bcv: val / exchangeRates.BCV
     };
-  }, [priceBs]);
+  }, [priceBs, exchangeRates]);
+
+  const handleOnClose = () => {
+    resetForm();
+    onClose();
+  };
 
   const handleGetLocation = () => {
     setIsLocating(true);
@@ -71,8 +74,7 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
       return;
     }
 
-    const submitLocation = location || userLocation;
-    if (!submitLocation) {
+    if (!location) {
       toast.error('Necesitamos tu ubicación');
       return;
     }
@@ -87,22 +89,22 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
         await reportService.create({
           businessName,
           priceBs: bsValue,
-          lat: submitLocation.lat,
-          lng: submitLocation.lng,
+          lat: location.lat,
+          lng: location.lng,
           photoFile: photoFile || undefined,
         });
       } else {
         // Fallback to local store
-        const usdtPrice = bsValue / EXCHANGE_RATES.USDT;
-        const bcvPrice = bsValue / EXCHANGE_RATES.BCV;
+        const usdtPrice = bsValue / exchangeRates.USDT;
+        const bcvPrice = bsValue / exchangeRates.BCV;
 
         addEntry({
           price: usdtPrice,
           priceBs: bsValue,
           priceBcv: bcvPrice,
           businessName,
-          lat: submitLocation.lat,
-          lng: submitLocation.lng,
+          lat: location.lat,
+          lng: location.lng,
           photo: photo || undefined,
         });
       }
@@ -112,8 +114,7 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
       
       setTimeout(() => {
         setShowSuccess(false);
-        onClose();
-        resetForm();
+        handleOnClose();
       }, 1500);
     } catch (error) {
       console.error('Failed to submit report:', error);
@@ -141,7 +142,7 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
         >
           <motion.div 
             className="absolute inset-0 bg-background/80 backdrop-blur-sm"
-            onClick={onClose}
+            onClick={handleOnClose}
           />
           
           <motion.div
@@ -181,7 +182,7 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-display font-bold">Reportar Precio</h2>
                     <button
-                      onClick={onClose}
+                      onClick={handleOnClose}
                       className="p-2 rounded-full hover:bg-secondary transition-colors"
                     >
                       <X className="w-5 h-5" />
@@ -191,14 +192,14 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
                   <div className="space-y-4">
                     {/* Photo capture (optional) */}
                     <div className="flex justify-center">
-                      <input
+                      {/* <input
                         type="file"
                         accept="image/*"
                         capture="environment"
                         ref={fileInputRef}
                         onChange={handlePhotoCapture}
                         className="hidden"
-                      />
+                      /> */}
                       {photo ? (
                         <motion.div
                           initial={{ scale: 0.8, opacity: 0 }}
@@ -282,22 +283,20 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
 
                     {/* Location */}
                     <div>
-                      <Label>Ubicación</Label>
+                      <Label>Ubicación *</Label>
                       <Button
                         variant="secondary"
-                        className="w-full mt-1 justify-start"
+                        className={`w-full mt-1 justify-start ${!location ? 'border border-dashed border-muted-foreground/50' : 'border border-green-500/50 bg-green-500/10'}`}
                         onClick={handleGetLocation}
                         disabled={isLocating}
                       >
                         {isLocating ? (
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                         ) : (
-                          <MapPin className="w-4 h-4 mr-2" />
+                          <MapPin className={`w-4 h-4 mr-2 ${location ? 'text-green-500' : ''}`} />
                         )}
                         {location 
                           ? `${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`
-                          : userLocation
-                          ? 'Usar ubicación actual'
                           : 'Detectar ubicación'
                         }
                       </Button>
@@ -306,7 +305,7 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
                     {/* Submit */}
                     <Button
                       onClick={handleSubmit}
-                      disabled={isSubmitting || !priceBs || !businessName}
+                      disabled={isSubmitting || !priceBs || !businessName || !location}
                       className="w-full h-12 text-lg font-display font-bold"
                     >
                       {isSubmitting ? (

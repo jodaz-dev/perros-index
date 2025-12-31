@@ -1,11 +1,15 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAppStore } from '@/store/useAppStore';
-import { TrendingUp, TrendingDown, MapPin } from 'lucide-react';
+import { TrendingUp, TrendingDown, MapPin, Info } from 'lucide-react';
+import { DisclaimerModal } from './DisclaimerModal';
 
 export const PerroTicker = () => {
   const { getNationalAverage, getLocalAverage, userLocation, entries } = useAppStore();
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
   
   const nationalAvg = getNationalAverage();
+
   const nationalAvgBcv = entries.length > 0
     ? entries.reduce((s, e) => s + (e.priceBcv || e.price), 0) / entries.length
     : 0;
@@ -61,21 +65,39 @@ export const PerroTicker = () => {
   );
 
   return (
-    <div className="w-full glass-strong py-3 overflow-hidden">
-      <motion.div
-        className="flex whitespace-nowrap"
-        animate={{ x: [0, -1000] }}
-        transition={{ 
-          duration: 20, 
-          repeat: Infinity, 
-          ease: "linear" 
-        }}
-      >
-        {tickerContent}
-        {tickerContent}
-        {tickerContent}
-        {tickerContent}
-      </motion.div>
+    <div className="relative w-full flex items-center">
+      <div className="flex-1 glass-strong py-3 overflow-hidden">
+        <motion.div
+          className="flex whitespace-nowrap"
+          animate={{ x: [0, -1000] }}
+          transition={{ 
+            duration: 20, 
+            repeat: Infinity, 
+            ease: "linear" 
+          }}
+        >
+          {tickerContent}
+          {tickerContent}
+          {tickerContent}
+          {tickerContent}
+        </motion.div>
+      </div>
+
+      {/* Info Button */}
+      <div className="absolute right-0 h-full flex items-center pr-4 z-10">
+        <button
+          onClick={() => setIsInfoOpen(true)}
+          className="p-2 glass-strong rounded-full text-primary hover:scale-110 active:scale-95 transition-transform border border-primary/20"
+          title="Información"
+        >
+          <Info className="w-5 h-5" />
+        </button>
+      </div>
+
+      <DisclaimerModal 
+        isOpen={isInfoOpen} 
+        onClose={() => setIsInfoOpen(false)} 
+      />
     </div>
   );
 };

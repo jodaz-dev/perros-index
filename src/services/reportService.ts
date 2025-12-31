@@ -1,5 +1,5 @@
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
-import { EXCHANGE_RATES } from '@/store/useAppStore';
+import { useAppStore } from '@/store/useAppStore';
 
 interface CreateReportInput {
   businessName: string;
@@ -9,6 +9,9 @@ interface CreateReportInput {
   state?: string;
   photoFile?: File;
 }
+
+// Helper to get the current exchange rates from the store
+const getExchangeRates = () => useAppStore.getState().exchangeRates;
 
 export const reportService = {
   /**
@@ -73,9 +76,10 @@ export const reportService = {
       photoUrl = urlData.publicUrl;
     }
 
-    // Calculate USD prices from Bs using current rates
-    const priceUsdt = input.priceBs / EXCHANGE_RATES.USDT;
-    const priceBcv = input.priceBs / EXCHANGE_RATES.BCV;
+    // Calculate USD prices from Bs using current rates from the store
+    const exchangeRates = getExchangeRates();
+    const priceUsdt = input.priceBs / exchangeRates.USDT;
+    const priceBcv = input.priceBs / exchangeRates.BCV;
 
     const { data, error } = await supabase!
       .from('reports')
