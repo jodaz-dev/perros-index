@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Info, TrendingUp, Building2, Coins } from 'lucide-react';
-import { EXCHANGE_RATES } from '@/store/useAppStore';
+import { useAppStore } from '@/store/useAppStore';
 
 export const DisclaimerModal = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const exchangeRates = useAppStore((state) => state.exchangeRates);
 
   useEffect(() => {
     const hasSeen = localStorage.getItem('disclaimer_seen');
@@ -57,14 +58,14 @@ export const DisclaimerModal = () => {
                       <Building2 className="w-4 h-4 text-primary" />
                       <span>Tasa BCV del día</span>
                     </div>
-                    <span className="font-bold">{EXCHANGE_RATES.BCV.toFixed(2)} VES</span>
+                    <span className="font-bold">{exchangeRates.BCV.toFixed(2)} VES</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
                       <TrendingUp className="w-4 h-4 text-green-500" />
                       <span>Tasa USDT del día</span>
                     </div>
-                    <span className="font-bold">{EXCHANGE_RATES.USDT.toFixed(2)} VES</span>
+                    <span className="font-bold">{exchangeRates.USDT.toFixed(2)} VES</span>
                   </div>
                 </div>
 

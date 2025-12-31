@@ -4,7 +4,7 @@ import { X, Camera, MapPin, Check, Loader2, Calculator } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAppStore, EXCHANGE_RATES } from '@/store/useAppStore';
+import { useAppStore } from '@/store/useAppStore';
 import { reportService } from '@/services/reportService';
 import { isSupabaseConfigured } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -13,8 +13,6 @@ interface SubmitModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
-console.log(EXCHANGE_RATES)
 
 export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
   const [priceBs, setPriceBs] = useState('');
@@ -27,16 +25,16 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
   const [showSuccess, setShowSuccess] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { addEntry, userLocation } = useAppStore();
+  const { addEntry, userLocation, exchangeRates } = useAppStore();
 
   const estimates = useMemo(() => {
     const val = parseFloat(priceBs);
     if (isNaN(val)) return null;
     return {
-      usdt: val / EXCHANGE_RATES.USDT,
-      bcv: val / EXCHANGE_RATES.BCV
+      usdt: val / exchangeRates.USDT,
+      bcv: val / exchangeRates.BCV
     };
-  }, [priceBs]);
+  }, [priceBs, exchangeRates]);
 
   const handleGetLocation = () => {
     setIsLocating(true);
@@ -93,8 +91,8 @@ export const SubmitModal = ({ isOpen, onClose }: SubmitModalProps) => {
         });
       } else {
         // Fallback to local store
-        const usdtPrice = bsValue / EXCHANGE_RATES.USDT;
-        const bcvPrice = bsValue / EXCHANGE_RATES.BCV;
+        const usdtPrice = bsValue / exchangeRates.USDT;
+        const bcvPrice = bsValue / exchangeRates.BCV;
 
         addEntry({
           price: usdtPrice,
